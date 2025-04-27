@@ -12,10 +12,20 @@ import { useAuth } from "@/hooks/use-auth"
 import { useTasks } from "@/hooks/use-tasks"
 import type { Task } from "@/lib/types"
 
+interface TaskFormWithRefetchProps {
+  onClose: () => void
+  editTask: Task | null
+  refetch: () => void
+}
+
+function TaskFormWithRefetch(props: TaskFormWithRefetchProps) {
+  return <TaskForm {...props} />
+}
+
 export default function DashboardPage() {
   const router = useRouter()
   const { user, loading: authLoading, logout } = useAuth()
-  const { tasks, loading: tasksLoading, error } = useTasks()
+  const { tasks, loading: tasksLoading, error, refetch } = useTasks()
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [activeFilter, setActiveFilter] = useState("all")
@@ -34,6 +44,11 @@ export default function DashboardPage() {
   const handleCloseForm = () => {
     setShowTaskForm(false)
     setEditingTask(null)
+  }
+
+  const handleAfterSave = async () => {
+    await refetch()
+    handleCloseForm()
   }
 
   const filteredTasks = tasks.filter((task) => {
@@ -62,7 +77,7 @@ export default function DashboardPage() {
 
       {showTaskForm && (
         <Card className="mb-6 p-4">
-          <TaskForm onClose={handleCloseForm} editTask={editingTask} />
+          <TaskForm onClose={handleAfterSave} editTask={editingTask} />
         </Card>
       )}
 
@@ -82,7 +97,7 @@ export default function DashboardPage() {
               No tasks found. Click &quot;Add Task&quot; to create one.
             </div>
           ) : (
-            <TaskList tasks={filteredTasks} onEdit={handleEditTask} />
+            <TaskList tasks={filteredTasks} onEdit={handleEditTask} onTaskChange={refetch} />
           )}
         </TabsContent>
       </Tabs>

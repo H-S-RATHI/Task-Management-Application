@@ -1,9 +1,9 @@
 export interface Task {
   id: string
   title: string
-  description?: string
+  description: string
   completed: boolean
-  priority: string
+  priority: "Low" | "Medium" | "High"
   createdAt: string
   userId: string
 }

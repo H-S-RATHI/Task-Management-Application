@@ -13,9 +13,10 @@ import { useTaskActions } from "@/hooks/use-tasks"
 interface TaskListProps {
   tasks: Task[]
   onEdit: (task: Task) => void
+  onTaskChange?: () => void
 }
 
-export function TaskList({ tasks, onEdit }: TaskListProps) {
+export function TaskList({ tasks, onEdit, onTaskChange }: TaskListProps) {
   const { updateTask, deleteTask } = useTaskActions()
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null)
 
@@ -33,16 +34,19 @@ export function TaskList({ tasks, onEdit }: TaskListProps) {
   const handleDeleteTask = async (taskId: string) => {
     if (confirm("Are you sure you want to delete this task?")) {
       await deleteTask(taskId)
+      if (typeof onTaskChange === 'function') {
+        onTaskChange()
+      }
     }
   }
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority.toLowerCase()) {
-      case "high":
+  const getPriorityColor = (priority: "Low" | "Medium" | "High") => {
+    switch (priority) {
+      case "High":
         return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
-      case "medium":
+      case "Medium":
         return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
-      case "low":
+      case "Low":
         return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
       default:
         return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300"
@@ -65,24 +69,20 @@ export function TaskList({ tasks, onEdit }: TaskListProps) {
                 <div>
                   <CardTitle
                     className={`text-lg ${task.completed ? "line-through text-gray-500" : ""}`}
-                    onClick={() => toggleTaskExpansion(task.id)}
                   >
                     {task.title}
                   </CardTitle>
+                  <div className="text-xs text-gray-400 select-all">ID: {task.id}</div>
                   <CardDescription className="mt-1">Created: {formatDate(task.createdAt)}</CardDescription>
+                  <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap mt-1">
+                    {task.description}
+                  </p>
                 </div>
               </div>
               <Badge className={`${getPriorityColor(task.priority)}`}>{task.priority}</Badge>
             </div>
           </CardHeader>
 
-          {expandedTaskId === task.id && (
-            <CardContent className="p-4 pt-2">
-              <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                {task.description || "No description provided."}
-              </p>
-            </CardContent>
-          )}
 
           <CardFooter className="p-2 bg-gray-50 dark:bg-gray-800 flex justify-end gap-2">
             <Button variant="ghost" size="sm" onClick={() => onEdit(task)} className="h-8">
