@@ -12,16 +12,6 @@ import { useAuth } from "@/hooks/use-auth"
 import { useTasks, useTaskActions } from "@/hooks/use-tasks"
 import type { Task } from "@/lib/types"
 
-interface TaskFormWithRefetchProps {
-  onClose: () => void
-  editTask: Task | null
-  refetch: () => void
-}
-
-function TaskFormWithRefetch(props: TaskFormWithRefetchProps) {
-  return <TaskForm {...props} />
-}
-
 export default function DashboardPage() {
   const router = useRouter()
   const { user, loading: authLoading, logout } = useAuth()
@@ -106,7 +96,11 @@ export default function DashboardPage() {
 
       {showTaskForm && (
         <Card className="mb-6 p-4">
-          <TaskForm onClose={handleCloseForm} editTask={editingTask} />
+          <TaskForm 
+            onClose={handleCloseForm} 
+            editTask={editingTask} 
+            onTaskAdded={(newTask) => setTasks(prev => [newTask, ...prev])}
+          />
         </Card>
       )}
 

@@ -36,7 +36,7 @@ export function useTaskActions() {
     priority: string
   }) => {
     try {
-      await addTask(taskData)
+      return await addTask(taskData)
     } catch (err) {
       throw err
     }

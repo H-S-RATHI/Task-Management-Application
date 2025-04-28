@@ -15,9 +15,10 @@ type Priority = Task["priority"];
 interface TaskFormProps {
   onClose: () => void
   editTask: Task | null
+  onTaskAdded?: (task: Task) => void
 }
 
-export function TaskForm({ onClose, editTask }: TaskFormProps) {
+export function TaskForm({ onClose, editTask, onTaskAdded }: TaskFormProps) {
   const { addTask, updateTask } = useTaskActions()
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
@@ -52,15 +53,16 @@ export function TaskForm({ onClose, editTask }: TaskFormProps) {
           description,
           priority,
         })
+        onClose()
       } else {
-        await addTask({
+        const newTask = await addTask({
           title,
           description,
           priority,
         })
+        if (onTaskAdded) onTaskAdded(newTask)
+        onClose()
       }
-
-      onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save task")
     } finally {
