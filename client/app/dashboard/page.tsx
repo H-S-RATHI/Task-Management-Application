@@ -106,7 +106,7 @@ export default function DashboardPage() {
 
       {showTaskForm && (
         <Card className="mb-6 p-4">
-          <TaskForm onClose={handleAfterSave} editTask={editingTask} />
+          <TaskForm onClose={handleCloseForm} editTask={editingTask} />
         </Card>
       )}
 
