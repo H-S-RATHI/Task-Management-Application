@@ -6,108 +6,46 @@ import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2 } from "lucide-react";
 import type { Task } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
-import { useTaskActions } from "@/hooks/use-tasks";
 import { useToast } from "@/hooks/use-toast";
 
 interface TaskListProps {
   tasks: Task[];
   onEdit: (task: Task) => void;
-  onTaskChange?: (updatedTasks: Task[]) => void;
+  onToggleComplete: (task: Task) => void;
+  onDelete: (taskId: string) => void;
 }
 
-export function TaskList({ tasks: initialTasks, onEdit, onTaskChange }: TaskListProps) {
-  // Use state for local tasks to prevent refreshes from parent
-  const [localTasks, setLocalTasks] = useState<Task[]>(initialTasks);
+export function TaskList({ tasks, onEdit, onToggleComplete, onDelete }: TaskListProps) {
   const [removingTaskIds, setRemovingTaskIds] = useState<string[]>([]);
   const [processingTaskIds, setProcessingTaskIds] = useState<string[]>([]);
   const removeTimeouts = useRef<{[key:string]: NodeJS.Timeout}>({});
   const { toast } = useToast();
-  const { updateTask, deleteTask } = useTaskActions();
 
-  // Update local state only when initialTasks change from outside
-  useEffect(() => {
-    // Only update if there's an actual change in the tasks array
-    if (JSON.stringify(initialTasks) !== JSON.stringify(localTasks)) {
-      setLocalTasks(initialTasks);
-    }
-  }, [initialTasks]);
-
-  const toggleTaskCompletion = async (task: Task) => {
-    // Prevent multiple clicks
+  const handleToggle = async (task: Task) => {
     if (processingTaskIds.includes(task.id)) return;
-    
-    // Mark as processing
     setProcessingTaskIds(prev => [...prev, task.id]);
-    
-    // Optimistic update - modify local state immediately
-    const updatedTask = { ...task, completed: !task.completed };
-    const updatedTasks = localTasks.map(t => 
-      t.id === task.id ? updatedTask : t
-    );
-    
-    // Update local state without refreshing the entire list
-    setLocalTasks(updatedTasks);
-    
     try {
-      // Perform backend update
-      await updateTask(updatedTask);
-      
-      // Notify parent of change to keep states in sync
-      if (onTaskChange) {
-        onTaskChange(updatedTasks);
-      }
+      await onToggleComplete(task);
     } catch (err) {
-      console.error('Error updating task:', err);
-      
-      // Revert optimistic update
-      setLocalTasks(localTasks);
-      
       toast({
         title: "Failed to update task",
         description: "Please try again",
         variant: "destructive",
       });
     } finally {
-      // Remove from processing state
       setProcessingTaskIds(prev => prev.filter(id => id !== task.id));
     }
   };
 
-  const handleDeleteTask = async (taskId: string) => {
+  const handleDelete = async (taskId: string) => {
     if (!confirm("Are you sure you want to delete this task?")) return;
-    
-    // Prevent multiple clicks
     if (processingTaskIds.includes(taskId)) return;
-    
     setProcessingTaskIds(prev => [...prev, taskId]);
-    // Trigger removal animation
     setRemovingTaskIds(prev => [...prev, taskId]);
-    
-    // Store the task to restore if needed
-    const taskToDelete = localTasks.find(t => t.id === taskId);
-    
-    // Optimistic update - remove from local state
-    const updatedTasks = localTasks.filter(t => t.id !== taskId);
-    setLocalTasks(updatedTasks);
-    
-    // Animation delay before actual deletion
     removeTimeouts.current[taskId] = setTimeout(async () => {
       try {
-        // Perform backend delete
-        await deleteTask(taskId);
-        
-        // Notify parent of change to keep states in sync
-        if (onTaskChange) {
-          onTaskChange(updatedTasks);
-        }
+        await onDelete(taskId);
       } catch (err) {
-        console.error('Error deleting task:', err);
-        
-        // Restore task on failure
-        if (taskToDelete) {
-          setLocalTasks(prev => [...prev, taskToDelete]);
-        }
-        
         toast({
           title: "Failed to delete task",
           description: "Please try again",
@@ -118,7 +56,7 @@ export function TaskList({ tasks: initialTasks, onEdit, onTaskChange }: TaskList
         setProcessingTaskIds(prev => prev.filter(id => id !== taskId));
         delete removeTimeouts.current[taskId];
       }
-    }, 300); // Animation duration
+    }, 300);
   };
 
   const getPriorityColor = (priority: "Low" | "Medium" | "High") => {
@@ -136,7 +74,7 @@ export function TaskList({ tasks: initialTasks, onEdit, onTaskChange }: TaskList
 
   return (
     <div className="space-y-6">
-      {localTasks.map((task) => {
+      {tasks.map((task) => {
         const isRemoving = removingTaskIds.includes(task.id);
         const isProcessing = processingTaskIds.includes(task.id);
         return (
@@ -161,7 +99,7 @@ export function TaskList({ tasks: initialTasks, onEdit, onTaskChange }: TaskList
                       onClick={(e) => {
                         e.stopPropagation();
                       }}
-                      onCheckedChange={() => toggleTaskCompletion(task)}
+                      onCheckedChange={() => handleToggle(task)}
                       disabled={isProcessing}
                       className={`scale-110 rounded-full border-2 transition-colors ${
                         task.completed ? 'border-green-500 bg-green-500' : 'border-gray-400'
@@ -202,7 +140,7 @@ export function TaskList({ tasks: initialTasks, onEdit, onTaskChange }: TaskList
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    toggleTaskCompletion(task);
+                    handleToggle(task);
                   }}
                   title={task.completed ? 'Mark as Incomplete' : 'Mark as Complete'}
                 >
@@ -241,7 +179,7 @@ export function TaskList({ tasks: initialTasks, onEdit, onTaskChange }: TaskList
                 size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleDeleteTask(task.id);
+                  handleDelete(task.id);
                 }}
                 disabled={isProcessing}
                 className="h-8 flex items-center gap-1 text-red-500 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900"

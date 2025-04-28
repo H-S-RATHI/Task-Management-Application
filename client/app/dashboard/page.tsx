@@ -9,7 +9,7 @@ import { Plus } from "lucide-react"
 import { TaskList } from "@/components/task-list"
 import { TaskForm } from "@/components/task-form"
 import { useAuth } from "@/hooks/use-auth"
-import { useTasks } from "@/hooks/use-tasks"
+import { useTasks, useTaskActions } from "@/hooks/use-tasks"
 import type { Task } from "@/lib/types"
 
 interface TaskFormWithRefetchProps {
@@ -25,10 +25,16 @@ function TaskFormWithRefetch(props: TaskFormWithRefetchProps) {
 export default function DashboardPage() {
   const router = useRouter()
   const { user, loading: authLoading, logout } = useAuth()
-  const { tasks, loading: tasksLoading, error, refetch } = useTasks()
+  const { tasks: initialTasks, loading: tasksLoading, error, refetch } = useTasks()
+  const { updateTask, deleteTask } = useTaskActions()
+  const [tasks, setTasks] = useState<Task[]>([])
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [activeFilter, setActiveFilter] = useState("all")
+
+  useEffect(() => {
+    setTasks(initialTasks)
+  }, [initialTasks])
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -49,6 +55,29 @@ export default function DashboardPage() {
   const handleAfterSave = async () => {
     await refetch()
     handleCloseForm()
+  }
+
+  // Handle completion toggle
+  const handleToggleComplete = async (task: Task) => {
+    const updatedTask = { ...task, completed: !task.completed }
+    setTasks((prev) => prev.map((t) => (t.id === task.id ? updatedTask : t)))
+    try {
+      await updateTask(updatedTask)
+    } catch {
+      // Revert on error
+      setTasks((prev) => prev.map((t) => (t.id === task.id ? task : t)))
+    }
+  }
+
+  // Handle delete
+  const handleDeleteTask = async (taskId: string) => {
+    const prevTasks = tasks
+    setTasks((prev) => prev.filter((t) => t.id !== taskId))
+    try {
+      await deleteTask(taskId)
+    } catch {
+      setTasks(prevTasks)
+    }
   }
 
   const filteredTasks = tasks.filter((task) => {
@@ -97,7 +126,12 @@ export default function DashboardPage() {
               No tasks found. Click &quot;Add Task&quot; to create one.
             </div>
           ) : (
-            <TaskList tasks={filteredTasks} onEdit={handleEditTask} onTaskChange={refetch} />
+            <TaskList
+              tasks={filteredTasks}
+              onEdit={handleEditTask}
+              onToggleComplete={handleToggleComplete}
+              onDelete={handleDeleteTask}
+            />
           )}
         </TabsContent>
       </Tabs>
