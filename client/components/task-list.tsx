@@ -49,10 +49,10 @@ export function TaskList({ tasks: initialTasks, onEdit, onTaskChange }: TaskList
     setLocalTasks(updatedTasks);
     
     try {
-      // Perform backend update (simulated)
+      // Perform backend update
       await updateTask(updatedTask);
       
-      // Notify parent of change with the updated tasks
+      // Notify parent of change to keep states in sync
       if (onTaskChange) {
         onTaskChange(updatedTasks);
       }
@@ -96,7 +96,7 @@ export function TaskList({ tasks: initialTasks, onEdit, onTaskChange }: TaskList
         // Perform backend delete
         await deleteTask(taskId);
         
-        // Notify parent
+        // Notify parent of change to keep states in sync
         if (onTaskChange) {
           onTaskChange(updatedTasks);
         }
@@ -182,6 +182,8 @@ export function TaskList({ tasks: initialTasks, onEdit, onTaskChange }: TaskList
                   </CardTitle>
                   <div className="flex flex-wrap items-center gap-2 mt-1">
                     <span className="text-xs text-gray-400">ID: {task.id}</span>
+                    <span className="text-xs text-gray-400">•</span>
+                    <span className="text-xs text-gray-400">User: {task.userId || 'N/A'}</span>
                     <span className="text-xs text-gray-400">•</span>
                     <CardDescription className="text-xs mt-0">Created: {formatDate(task.createdAt)}</CardDescription>
                   </div>

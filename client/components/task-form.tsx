@@ -68,63 +68,78 @@ export function TaskForm({ onClose, editTask }: TaskFormProps) {
     }
   }
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">{editTask ? "Edit Task" : "Add New Task"}</h2>
-        <Button type="button" variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
+  const handleClose = () => {
+      // Immediately call onClose without waiting for state updates
+      onClose();
+    }
+  
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold">{editTask ? "Edit Task" : "Add New Task"}</h2>
+          <Button 
+            type="button" 
+            variant="ghost" 
+            size="sm" 
+            onClick={handleClose} 
+            className="h-8 w-8 p-0"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
 
-      {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && <p className="text-red-500 text-sm">{error}</p>}
 
-      <div className="space-y-2">
-        <Label htmlFor="title">Title</Label>
-        <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Task title" required />
-      </div>
+        <div className="space-y-2">
+          <Label htmlFor="title">Title</Label>
+          <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Task title" required />
+        </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Task description (optional)"
-          rows={3}
-        />
-      </div>
+        <div className="space-y-2">
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Task description (optional)"
+            rows={3}
+          />
+        </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="priority">Priority</Label>
-        <Select
-  value={priority.toLowerCase()}
-  onValueChange={(val) => {
-    // Map select values to Priority type
-    if (val === "low") setPriority("Low")
-    else if (val === "medium") setPriority("Medium")
-    else if (val === "high") setPriority("High")
-  }}
+        <div className="space-y-2">
+          <Label htmlFor="priority">Priority</Label>
+          <Select
+    value={priority.toLowerCase()}
+    onValueChange={(val) => {
+      // Map select values to Priority type
+      if (val === "low") setPriority("Low")
+      else if (val === "medium") setPriority("Medium")
+      else if (val === "high") setPriority("High")
+    }}
 >
-          <SelectTrigger id="priority">
-            <SelectValue placeholder="Select priority" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="low">Low</SelectItem>
-            <SelectItem value="medium">Medium</SelectItem>
-            <SelectItem value="high">High</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+            <SelectTrigger id="priority">
+              <SelectValue placeholder="Select priority" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="low">Low</SelectItem>
+              <SelectItem value="medium">Medium</SelectItem>
+              <SelectItem value="high">High</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-      <div className="flex justify-end gap-2 pt-2">
-        <Button type="button" variant="outline" onClick={onClose}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={loading}>
-          {loading ? "Saving..." : editTask ? "Update Task" : "Add Task"}
-        </Button>
-      </div>
-    </form>
-  )
+        <div className="flex justify-end gap-2 pt-2">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={handleClose}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={loading}>
+            {loading ? "Saving..." : editTask ? "Update Task" : "Add Task"}
+          </Button>
+        </div>
+      </form>
+    )
 }
