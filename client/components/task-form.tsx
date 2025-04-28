@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { X } from "lucide-react"
 import type { Task } from "@/lib/types"
 import { useTaskActions } from "@/hooks/use-tasks"
+type Priority = Task["priority"];
 
 interface TaskFormProps {
   onClose: () => void
@@ -21,7 +21,7 @@ export function TaskForm({ onClose, editTask }: TaskFormProps) {
   const { addTask, updateTask } = useTaskActions()
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
-  const [priority, setPriority] = useState("medium")
+  const [priority, setPriority] = useState<Priority>("Medium")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
@@ -97,7 +97,15 @@ export function TaskForm({ onClose, editTask }: TaskFormProps) {
 
       <div className="space-y-2">
         <Label htmlFor="priority">Priority</Label>
-        <Select value={priority} onValueChange={setPriority}>
+        <Select
+  value={priority.toLowerCase()}
+  onValueChange={(val) => {
+    // Map select values to Priority type
+    if (val === "low") setPriority("Low")
+    else if (val === "medium") setPriority("Medium")
+    else if (val === "high") setPriority("High")
+  }}
+>
           <SelectTrigger id="priority">
             <SelectValue placeholder="Select priority" />
           </SelectTrigger>

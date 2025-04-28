@@ -45,8 +45,14 @@ router.patch('/:id', auth, async (req, res) => {
       req.body,
       { new: true }
     );
+    console.log('[PATCH] Updated Task:', task);
     if (!task) return res.status(404).json({ message: 'Task not found' });
-    res.json(task);
+    const plainTask = task.toObject();
+    plainTask._id = plainTask._id.toString();
+    plainTask.user = plainTask.user.toString();
+    console.log('[PATCH] Updated Task:', plainTask);
+    res.json(plainTask);
+    console.log('[PATCH] Response sent for task:', plainTask._id);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
