@@ -14,7 +14,7 @@ interface Session {
 // Register a new user
 export async function registerUser(email: string, password: string) {
   try {
-    const res = await fetch('http://localhost:5000/api/auth/register', {
+    const res = await fetch('https://task-management-application-xyzo.onrender.com/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -35,7 +35,7 @@ export async function registerUser(email: string, password: string) {
 // Login user
 export async function loginUser(email: string, password: string) {
   try {
-    const res = await fetch('http://localhost:5000/api/auth/login', {
+    const res = await fetch('https://task-management-application-xyzo.onrender.com/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -57,7 +57,7 @@ export async function getCurrentUser(): Promise<User | null> {
   const token = localStorage.getItem('token');
   if (!token) return null;
   try {
-    const res = await fetch('http://localhost:5000/api/auth/me', {
+    const res = await fetch('https://task-management-application-xyzo.onrender.com/api/auth/me', {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) return null;

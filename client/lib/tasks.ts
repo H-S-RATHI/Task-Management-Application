@@ -1,6 +1,6 @@
 import type { Task } from "./types"
 
-const API_URL = "http://localhost:5000/api/tasks";
+const API_URL = "https://task-management-application-xyzo.onrender.com/api/tasks";
 
 // Local storage helpers removed. All task operations now use backend API.
 
